@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAX_LINE_LENGTH 100
+
+// Structure to represent a single data point
+typedef struct {
+    char stockId[20];
+    char timestamp[20];
+    double price;
+} DataPoint;
+
+// 1. Function to fetch 10 consecutive data points starting from a random timestamp
+DataPoint* fetchDataPoints(const char* filePath) {
+    FILE* file = fopen(filePath, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    DataPoint* dataPoints = (DataPoint*)malloc(10 * sizeof(DataPoint));
+    if (dataPoints == NULL) {
+        perror("Memory allocation failed");
+        fclose(file);
+        return NULL;
+    }
+
+    // Count the total number of lines in the file
+    int totalLines = 0;
+    char line[MAX_LINE_LENGTH];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        totalLines++;
+    }
+
+    // Generate a random start index
+    srand(time(NULL));
+    int start = rand() % (totalLines - 10);
+
+    // Read data points starting from the random index
+    fseek(file, 0, SEEK_SET);
+    for (int i = 0; i < start; i++) {
+        fgets(line, sizeof(line), file);
+    }
+    for (int i = 0; i < 10; i++) {
+        fgets(line, sizeof(line), file);
+        sscanf(line, "%s %s %lf", dataPoints[i].stockId, dataPoints[i].timestamp, &dataPoints[i].price);
+    }
+
+    fclose(file);
+    return dataPoints;
+}
+
+// Function to predict the next 3 values in the time series data
+double* predictNextValues(DataPoint* dataPoints) {
+    double* predictions = (double*)malloc(3 * sizeof(double));
+    if (predictions == NULL) {
+        perror("Memory allocation failed");
+        return NULL;
+    }
+
+    double n = dataPoints[8].price;
+    double nPlus1 = dataPoints[9].price;
+    double nPlus2 = nPlus1 + (nPlus1 - n) / 2;
+    double nPlus3 = nPlus2 + (nPlus1 - nPlus2) / 4;
+
+    predictions[0] = nPlus1;
+    predictions[1] = nPlus2;
+    predictions[2] = nPlus3;
+
+    return predictions;
+}
+
+// 2. Function to write predictions to CSV file
+void writePredictionsToCSV(const char* outputFilePath, DataPoint* dataPoints, double* predictions) {
+    FILE* file = fopen(outputFilePath, "w");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    // Write original data points to file
+    for (int i = 0; i < 10; i++) {
+        fprintf(file, "%s %s %.2f\n", dataPoints[i].stockId, dataPoints[i].timestamp, dataPoints[i].price);
+    }
+
+    // Write predicted values to file
+    for (int i = 0; i < 3; i++) {
+        fprintf(file, "%s Timestamp-n+%d %.2f\n", dataPoints[9].stockId, i + 1, predictions[i]);
+    }
+
+    fclose(file);
+}
+
+int main() {
+    const char* inputFilePath = "path_to_input_file.csv"; // Change this to your input file path
+    const char* outputFilePath = "path_to_output_file.csv"; // Change this to your output file path
+
+    DataPoint* dataPoints = fetchDataPoints(inputFilePath);
+    if (dataPoints == NULL) {
+        return 1;
+    }
+
+    double* predictions = predictNextValues(dataPoints);
+    if (predictions == NULL) {
+        free(dataPoints);
+        return 1;
+    }
+
+    writePredictionsToCSV(outputFilePath, dataPoints, predictions);
+
+    free(dataPoints);
+    free(predictions);
+
+    printf("Predictions written to %s\n", outputFilePath);
+
+    return 0;
+}
