@@ -1,0 +1,20 @@
+Stock Price Prediction Readme
+
+This C program is designed to predict the next three values in a time series data of stock prices. It fetches 10 consecutive data points from a CSV file, starting from a randomly chosen timestamp. Based on these data points, it then predicts the next three values using a simple arithmetic formula. Finally, it writes both the original data points and the predicted values to a new CSV file.
+
+Requirements
+This program requires a C compiler to build and run.
+Ensure that the input CSV file containing the stock price data is properly formatted with each line representing a single data point in the format: stockID timestamp price.
+Make sure to provide the correct file paths for the input and output files.
+
+Usage
+1.	Compilation: Compile the program using a C compiler. For example, if you're using GCC, you can compile the program by running:
+gcc program_name.c -o program_name
+              Replace program_name with your preferred name for the compiled executable.
+
+2.	Execution: Run the compiled program from the command line, providing the paths to the input and output files as command-line arguments. For example:
+             ./program_name path_to_input_file.csv path_to_output_file.csv
+Replace path_to_input_file.csv with the path to your input CSV file containing the stock price data, and path_to_output_file.csv with the desired path for the output CSV file.
+
+3.	Output: After execution, the program will generate a new CSV file containing both the original data points and the predicted values. You can find this file at the specified output path.
+
